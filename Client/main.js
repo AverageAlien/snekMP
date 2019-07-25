@@ -48,8 +48,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
         }
     }
 
-
-    let ServerIP = prompt("Enter server IP.", "127.0.0.1");
+    let DefaultIP = "%DEF_IP%";
+    let ServerIP = prompt("Enter server IP.", DefaultIP);
     if (!ServerIP) {
         console.log("Connection cancelled.");
         return;

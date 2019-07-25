@@ -25,16 +25,15 @@ let PageServer = http.createServer(function(req, res) {
             }
         });
     } else if (urlParsed.pathname == "/main.js") {
-        fs.readFile("Client/main.js", function(err, file) {
+        fs.readFile("Client/main.js", "utf8", function(err, file) {
             if (err == null) {
+                file = file.replace("%DEF_IP%", MyIP);
                 res.end(file);
             } else {
                 res.end(err.message);
             }
         })
     }
-
-    
 });
 PageServer.listen(PagePort, MyIP);
 
@@ -256,6 +255,7 @@ function Lose(Player) {
 
 let GameLoop = setInterval(function() {
     let Keys = Object.keys(Players);
+    let Nexts = [];
     Keys.forEach(function(Key) {
         if (!Players[Key].Alive) return;
         let Next = NextStep(Players[Key]);
@@ -276,17 +276,20 @@ let GameLoop = setInterval(function() {
             Lose(Players[Key]);
             return;
         }
-        Players[Key].PrevDirection = Players[Key].Direction;
+    });
+
+    Keys.forEach(function(Key) {
+        if (!Players[Key].Alive) return;
         // TODO: food pick up
-        
+        Players[Key].PrevDirection = Players[Key].Direction;
         if (Players[Key].Body.length == Players[Key].Length) {
             Players[Key].Body.shift();
         } else if (Players[Key].Body.length > Players[Key].Length) {
             console.error(Sock(Players[Key].Con) + " - length error.");
         }
         Players[Key].Body.push(new Block("Body", Players[Key].Head.X, Players[Key].Head.Y));
-        Players[Key].Head.X = Next.X;
-        Players[Key].Head.Y = Next.Y;
+        Players[Key].Head.X = NextStep(Players[Key]).X;
+        Players[Key].Head.Y = NextStep(Players[Key]).Y;
     });
 
     for (let i = 0; i < Dead.length; ++i) {
@@ -298,12 +301,6 @@ let GameLoop = setInterval(function() {
         }
         Dead[i].Age++;
     }
-
-    // Dead.forEach(function(b) {
-    //     console.log("Check for " + JSON.stringify(b));
-    //     if (b.Age == Despawn) Dead.splice(Dead.indexOf(b), 1);
-    //     b.Age++;
-    // });
 
     // broadcast game state
     let GameState = {};
@@ -320,7 +317,7 @@ let GameLoop = setInterval(function() {
         });
     });
     let Msg = JSON.stringify(GameState);
-    console.log(">> [BROADCAST] " + Msg);
+    // console.log(">> [BROADCAST] " + Msg);
     Keys.forEach(function(Key) {
         Players[Key].Con.sendUTF(Msg);
     });
