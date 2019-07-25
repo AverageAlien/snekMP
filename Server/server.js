@@ -39,7 +39,7 @@ shuffleArray(ColorPool);
 const BaseLength = 4;
 let Players = [];
 let Food = [];
-let Speed = 5;
+let Speed = 2;
 const Despawn = 10;
 let Dead = [];
 const GridData = {
@@ -63,6 +63,12 @@ function Player(Con, Username, Color, Head) {
 
 function Block(Type, X, Y) {
     this.Type = Type;
+    this.X = X;
+    this.Y = Y;
+}
+function DeadBlock(X, Y) {
+    this.Type = "Dead";
+    this.Age = 0;
     this.X = X;
     this.Y = Y;
 }
@@ -106,8 +112,6 @@ WsServer.on('request', function(request) {
                             SpawnCoords.X = GridData.Width / 2 + Math.floor(GridData.Width / 2 * (Math.random() - 0.5));
                             SpawnCoords.Y = GridData.Height / 2 + Math.floor(GridData.Height / 2 * (Math.random() - 0.5));
                         } while (!CheckFree(SpawnCoords.X, SpawnCoords.Y));
-                        Players[Sock(Connection)] = new Player(Connection, Packet.username, ColorPool.pop(),
-                        new Block("Head", SpawnCoords.X, SpawnCoords.Y));
                         Response = {
                             type: "auth",
                             success: true,
@@ -116,6 +120,8 @@ WsServer.on('request', function(request) {
                         Msg = JSON.stringify(Response);
                         Connection.sendUTF(Msg);
                         console.log(">> " + Msg);
+                        Players[Sock(Connection)] = new Player(Connection, Packet.username, ColorPool.pop(),
+                        new Block("Head", SpawnCoords.X, SpawnCoords.Y));
                     } else {
                         if (ColorPool.length == 0) {
                             Response = {
@@ -142,6 +148,7 @@ WsServer.on('request', function(request) {
                     break;
                 case "direction":
                     console.log("<< Input direction: " + Packet.dir);
+                    if (!Players[Sock(Connection)].Alive) return;
                     if (Packet.dir == Players[Sock(Connection)].Direction) return;
                     if (Packet.dir == Players[Sock(Connection)].PrevDirection - 2 ||
                     Packet.dir == Players[Sock(Connection)].PrevDirection + 2) return;
@@ -153,8 +160,10 @@ WsServer.on('request', function(request) {
 
     Connection.on("close", function() {
         console.log(Sock(Connection) + " disconnected.");
-        ColorPool.push(Players[Sock(Connection)].Color);
-        delete Players[Sock(Connection)];
+        if (Object.keys(Players).indexOf(Sock(Connection)) >= 0) {
+            ColorPool.push(Players[Sock(Connection)].Color);
+            delete Players[Sock(Connection)];
+        }
     });
 
 });
@@ -181,17 +190,18 @@ function NextStep(Player) {
 }
 
 function CheckFree(X, Y) {
-    for (let i = 0; i < Food.length; ++i) {
+    for (let i = 0; i < Food.length; ++i) { // check food
         if (Food[i].X == X && Food[i].Y == Y) return false;
     }
     let Keys = Object.keys(Players);
-    for (let i = 0; i < Keys.length; ++i) {
+    for (let i = 0; i < Keys.length; ++i) { // check players
+        if (!Players[Keys[i]].Alive) continue;
         if (Players[Keys[i]].Head.X == X && Players[Keys[i]].Head.Y == Y) return false;
         for (let j = 0; j < Players[Keys[i]].Body.length; ++j) {
             if (Players[Keys[i]].Body[j].X == X && Players[Keys[i]].Body[j].Y == Y) return false;
         }
     }
-    for (let i = 0; i < Dead.length; ++i) {
+    for (let i = 0; i < Dead.length; ++i) { // check corpses
         if (Dead[i].X == X && Dead[i].Y == Y) return false;
     }
     return true;
@@ -200,9 +210,9 @@ function CheckFree(X, Y) {
 function Lose(Player) {
     if (!Player.Alive) return;
     Player.Alive = false;
-    Dead.push(new Block("Dead", Player.Head.X, Player.Head.Y));
+    Dead.push(new DeadBlock(Player.Head.X, Player.Head.Y));
     Player.Body.forEach(function(b) {
-        Dead.push(new Block("Dead", b.X, b.Y));
+        Dead.push(new DeadBlock(b.X, b.Y));
     });
     let Packet = {
         type: "lose"
@@ -218,15 +228,15 @@ let GameLoop = setInterval(function() {
     Keys.forEach(function(Key) {
         if (!Players[Key].Alive) return;
         let Next = NextStep(Players[Key]);
-        if (Next.X == -1 || Next.Y == -1) {
+        if (Next.X == -1 || Next.Y == -1) { // check out of bounds
             Lose(Players[Key]);
             return;
         }
-        if (!CheckFree(Next)) {
+        if (!CheckFree(Next)) { // check blocked path
             Lose(Players[Key]);
             return;
         }
-        let Stalemate = false;
+        let Stalemate = false; // check stalemate (2+ snakes moving into the same spot)
         Keys.forEach(function(k) {
             if (k == Key || Stalemate) return;
             if (Next == NextStep(Players[k])) Stalemate = true;
@@ -238,6 +248,49 @@ let GameLoop = setInterval(function() {
         Players[Key].PrevDirection = Players[Key].Direction;
         // TODO: food pick up
         
+        if (Players[Key].Body.length == Players[Key].Length) {
+            Players[Key].Body.shift();
+        } else if (Players[Key].Body.length > Players[Key].Length) {
+            console.error(Sock(Players[Key].Con) + " - length error.");
+        }
+        Players[Key].Body.push(new Block("Body", Players[Key].Head.X, Players[Key].Head.Y));
+        Players[Key].Head.X = Next.X;
+        Players[Key].Head.Y = Next.Y;
+    });
 
+    for (let i = 0; i < Dead.length; ++i) {
+        console.log("Check for" + JSON.stringify(Dead[i]));
+        if (Dead[i].Age == Despawn) {
+            Dead.splice(i, 1);
+            --i;
+            continue;
+        }
+        Dead[i].Age++;
+    }
+
+    // Dead.forEach(function(b) {
+    //     console.log("Check for " + JSON.stringify(b));
+    //     if (b.Age == Despawn) Dead.splice(Dead.indexOf(b), 1);
+    //     b.Age++;
+    // });
+
+    // broadcast game state
+    let GameState = {};
+    GameState.type = "gamestate";
+    GameState.food = Food;
+    GameState.snakes = [];
+    GameState.dead = Dead;
+    Keys.forEach(function(Key) {
+        if (!Players[Key].Alive) return;
+        GameState.snakes.push({
+            color: Players[Key].Color,
+            head: Players[Key].Head,
+            body: Players[Key].Body
+        });
+    });
+    let Msg = JSON.stringify(GameState);
+    console.log(">> [BROADCAST] " + Msg);
+    Keys.forEach(function(Key) {
+        Players[Key].Con.sendUTF(Msg);
     });
 }, 1000 * (1 / Speed));
