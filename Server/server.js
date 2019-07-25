@@ -1,7 +1,8 @@
 let WebSocketServer = require("websocket").server;
 let http = require("http");
 let localIP = require("./node_modules/local-ip");
-
+let fs = require("fs");
+let url = require("url");
 
 const MyMAC = "74:2f:68:9d:59:97";
 let MyIP = localIP.MACtoIPv4(MyMAC);
@@ -9,7 +10,35 @@ if (MyIP.err) {
     console.error(MyIP.err);
 }
 MyIP = MyIP.ip;
-const ListenPort = 34100;
+const PagePort = 34000;
+const ListenPort = 34101;
+
+let PageServer = http.createServer(function(req, res) {
+    let urlParsed = url.parse(req.url, true);
+
+    if (urlParsed.pathname == "/game") {
+        fs.readFile("Client/index.html", function(err, file) {
+            if (err == null) {
+                res.end(file);
+            } else {
+                res.end(err.message);
+            }
+        });
+    } else if (urlParsed.pathname == "/main.js") {
+        fs.readFile("Client/main.js", function(err, file) {
+            if (err == null) {
+                res.end(file);
+            } else {
+                res.end(err.message);
+            }
+        })
+    }
+
+    
+});
+PageServer.listen(PagePort, MyIP);
+
+
 
 let Server = http.createServer(function(request, response) {
     //autoimplemented
@@ -189,13 +218,15 @@ function NextStep(Player) {
     return Step;
 }
 
-function CheckFree(X, Y) {
-    for (let i = 0; i < Food.length; ++i) { // check food
-        if (Food[i].X == X && Food[i].Y == Y) return false;
+function CheckFree(X, Y, IgnoreFood = false) {
+    if (!IgnoreFood) {
+        for (let i = 0; i < Food.length; ++i) { // check food
+            if (Food[i].X == X && Food[i].Y == Y) return false;
+        }
     }
     let Keys = Object.keys(Players);
     for (let i = 0; i < Keys.length; ++i) { // check players
-        if (!Players[Keys[i]].Alive) continue;
+        if (!(Players[Keys[i]].Alive)) continue;
         if (Players[Keys[i]].Head.X == X && Players[Keys[i]].Head.Y == Y) return false;
         for (let j = 0; j < Players[Keys[i]].Body.length; ++j) {
             if (Players[Keys[i]].Body[j].X == X && Players[Keys[i]].Body[j].Y == Y) return false;
@@ -232,14 +263,14 @@ let GameLoop = setInterval(function() {
             Lose(Players[Key]);
             return;
         }
-        if (!CheckFree(Next)) { // check blocked path
+        if (!CheckFree(Next.X, Next.Y)) { // check blocked path
             Lose(Players[Key]);
             return;
         }
         let Stalemate = false; // check stalemate (2+ snakes moving into the same spot)
         Keys.forEach(function(k) {
-            if (k == Key || Stalemate) return;
-            if (Next == NextStep(Players[k])) Stalemate = true;
+            if ((k == Key) || Stalemate) return;
+            if (Next.X == NextStep(Players[k]).X && Next.Y == NextStep(Players[k]).Y) Stalemate = true;
         });
         if (Stalemate) {
             Lose(Players[Key]);

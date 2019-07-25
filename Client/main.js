@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
         console.log("Connection cancelled.");
         return;
     }
-    const ServerPort = 34100;
+    const ServerPort = 34101;
     let Connection = new WebSocket(`ws://${ServerIP}:${ServerPort}`);
     let Username = null;
 
