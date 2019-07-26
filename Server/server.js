@@ -67,6 +67,9 @@ shuffleArray(ColorPool);
 const BaseLength = 4;
 let Players = [];
 let Food = [];
+const FoodLimit = 4;
+const FoodInterval = 10;
+let FoodTimer = 0;
 let Speed = 2;
 const Despawn = 10;
 let Dead = [];
@@ -255,7 +258,7 @@ function Lose(Player) {
 
 let GameLoop = setInterval(function() {
     let Keys = Object.keys(Players);
-    let Nexts = [];
+    // player deaths
     Keys.forEach(function(Key) {
         if (!Players[Key].Alive) return;
         let Next = NextStep(Players[Key]);
@@ -263,7 +266,7 @@ let GameLoop = setInterval(function() {
             Lose(Players[Key]);
             return;
         }
-        if (!CheckFree(Next.X, Next.Y)) { // check blocked path
+        if (!CheckFree(Next.X, Next.Y, true)) { // check blocked path
             Lose(Players[Key]);
             return;
         }
@@ -278,9 +281,19 @@ let GameLoop = setInterval(function() {
         }
     });
 
+    // player movement
     Keys.forEach(function(Key) {
         if (!Players[Key].Alive) return;
-        // TODO: food pick up
+        let Next = NextStep(Players[Key]);
+
+        for (let f of Food) { // food pick up
+            if (f.X == Next.X && f.Y == Next.Y) {
+                Players[Key].Length++;
+                Food.splice(Food.indexOf(f), 1);
+                break;
+            }
+        }
+
         Players[Key].PrevDirection = Players[Key].Direction;
         if (Players[Key].Body.length == Players[Key].Length) {
             Players[Key].Body.shift();
@@ -288,12 +301,27 @@ let GameLoop = setInterval(function() {
             console.error(Sock(Players[Key].Con) + " - length error.");
         }
         Players[Key].Body.push(new Block("Body", Players[Key].Head.X, Players[Key].Head.Y));
-        Players[Key].Head.X = NextStep(Players[Key]).X;
-        Players[Key].Head.Y = NextStep(Players[Key]).Y;
+        Players[Key].Head.X = Next.X;
+        Players[Key].Head.Y = Next.Y;
     });
+    
+    // food spawn
+    if (Food.length < FoodLimit) {
+        if (FoodTimer == FoodInterval) {
+            FoodTimer = 0;
+            let NewFood = new Block("Food", 0, 0);
+            do {
+                NewFood.X = GridData.Width / 2 + Math.floor(GridData.Width * (Math.random() - 0.5));
+                NewFood.Y = GridData.Height / 2 + Math.floor(GridData.Height * (Math.random() - 0.5));
+            } while (!CheckFree(NewFood.X, NewFood.Y));
+            Food.push(NewFood);
+        } else {
+            FoodTimer++;
+        }
+    }
 
+    // dead despawn
     for (let i = 0; i < Dead.length; ++i) {
-        console.log("Check for" + JSON.stringify(Dead[i]));
         if (Dead[i].Age == Despawn) {
             Dead.splice(i, 1);
             --i;
@@ -317,7 +345,6 @@ let GameLoop = setInterval(function() {
         });
     });
     let Msg = JSON.stringify(GameState);
-    // console.log(">> [BROADCAST] " + Msg);
     Keys.forEach(function(Key) {
         Players[Key].Con.sendUTF(Msg);
     });
