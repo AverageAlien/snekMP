@@ -27,7 +27,9 @@ let PageServer = http.createServer(function(req, res) {
     } else if (urlParsed.pathname == "/main.js") {
         fs.readFile("Client/main.js", "utf8", function(err, file) {
             if (err == null) {
-                file = file.replace("%DEF_IP%", MyIP);
+                let RandomName = NamePool1[Math.floor(Math.random() * NamePool1.length)] + " " +
+                NamePool2[Math.floor(Math.random() * NamePool2.length)];
+                file = file.replace("%DEF_IP%", MyIP).replace("%DEF_USERNAME%", RandomName);
                 res.end(file);
             } else {
                 res.end(err.message);
@@ -44,6 +46,7 @@ let Server = http.createServer(function(request, response) {
 });
 Server.listen(ListenPort, MyIP, function() {
     console.log("Server started listening on " + MyIP + ":" + ListenPort);
+    console.log(`Connect to ${MyIP}:${PagePort}/game to play!`);
 });
 
 let WsServer = new WebSocketServer({
@@ -56,6 +59,8 @@ function Sock(Con) {
 }
 
 let ColorPool = ["red", "green", "blue", "yellow", "orange", "pink", "cyan"];
+let NamePool1 = ["Stupid", "Smart", "Fast", "Slow", "Tall", "Short", "Big", "Small", "Thicc", "Rapid"];
+let NamePool2 = ["Nugget", "Pig", "Whiskey", "Boat", "Cowboy", "Person", "Mailman", "Eggplant", "Bruh"];
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -340,6 +345,7 @@ let GameLoop = setInterval(function() {
         if (!Players[Key].Alive) return;
         GameState.snakes.push({
             color: Players[Key].Color,
+            name: Players[Key].Username,
             head: Players[Key].Head,
             body: Players[Key].Body
         });

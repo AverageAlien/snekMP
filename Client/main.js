@@ -10,6 +10,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
         Width: 512,
         Height: 512,
         OutlineColor: "#303030",
+        PlayerOutlineColor: "#a0a0a0",
         DeadColor: "#636363",
         FoodColor: "#ffffff"
     };
@@ -26,11 +27,11 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
 
     // draw
-    function DrawRect(X, Y, Color) {
+    function DrawRect(X, Y, Color, Outline = CanvasData.OutlineColor) {
         let x = X * CanvasData.Width / GridData.Width;
         let y = Y * CanvasData.Height / GridData.Height;
         if (GridData.Outline > 0) {
-            Ctx.fillStyle = CanvasData.OutlineColor;
+            Ctx.fillStyle = Outline;
         } else {
             Ctx.fillStyle = Color;
         }
@@ -60,15 +61,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
     Connection.onopen = function(event) {
         console.log("Connected to " + Connection.url + ". Ready to use.");
-        // authorize
-        // Username = prompt("What is your name?", "Guest");
-        // let AuthPacket = {
-        //     type: "auth",
-        //     username: Username
-        // };
-        // let Msg = JSON.stringify(AuthPacket);
-        // Connection.send(Msg);
-        // console.log(">> " + Msg);
     }
 
     Connection.onerror = function(error) {
@@ -89,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
                 GridData.Width = Packet.grid_w;
                 GridData.Height = Packet.grid_h;
                 // auth
-                let DesiredUsername = prompt("Enter your name.", "Guest");
+                let DesiredUsername = prompt("Enter your name.", "%DEF_USERNAME%");
                 let AuthPacket = {
                     type: "auth",
                     username: DesiredUsername
@@ -114,9 +106,11 @@ document.addEventListener('DOMContentLoaded', function(event) {
                     DrawRect(food.X, food.Y, CanvasData.FoodColor);
                 });
                 Packet.snakes.forEach(function(snake) {
-                    DrawRect(snake.head.X, snake.head.Y, snake.color);
+                    DrawRect(snake.head.X, snake.head.Y, snake.color,
+                        (snake.name == Username)?CanvasData.PlayerOutlineColor : CanvasData.OutlineColor);
                     snake.body.forEach(function(b) {
-                        DrawRect(b.X, b.Y, snake.color);
+                        DrawRect(b.X, b.Y, snake.color,
+                            (snake.name == Username)?CanvasData.PlayerOutlineColor : CanvasData.OutlineColor);
                     });
                 });
                 Packet.dead.forEach(function(b) {
