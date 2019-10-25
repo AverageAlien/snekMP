@@ -58,7 +58,13 @@ function Sock(Con) {
     return socket.remoteAddress + ":" + socket.remotePort;
 }
 
-let ColorPool = ["red", "green", "blue", "yellow", "orange", "pink", "cyan"];
+let ColorPool = [];
+
+//fill the color pool
+for (let i = 0; i < 16; ++i) {
+    ColorPool.push(`hsl(${Math.random() * 360}, 100%, 50%)`);
+}
+
 let NamePool1 = ["Stupid", "Smart", "Fast", "Slow", "Tall", "Short", "Big", "Small", "Thicc", "Rapid"];
 let NamePool2 = ["Nugget", "Pig", "Whiskey", "Boat", "Cowboy", "Person", "Mailman", "Eggplant", "Bruh"];
 function shuffleArray(array) {

@@ -48,6 +48,17 @@ document.addEventListener('DOMContentLoaded', function(event) {
             );
         }
     }
+    function DrawLabel(X, Y, Text, Color) {
+        Ctx.font = "16px Comic Sans MS";
+        Ctx.fillStyle = Color;
+        Ctx.strokeStyle = "#000000";
+        Ctx.textAlign = "center"
+        let x = (X + 0.5) * CanvasData.Width / GridData.Width;
+        let y = (Y + 2) * CanvasData.Height / GridData.Height;
+        Ctx.strokeText(Text, x, y);
+        Ctx.fillText(Text, x, y);
+    }
+
 
     let DefaultIP = "%DEF_IP%";
     let ServerIP = prompt("Enter server IP.", DefaultIP);
@@ -105,6 +116,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
                 Packet.food.forEach(function(food) {
                     DrawRect(food.X, food.Y, CanvasData.FoodColor);
                 });
+                Packet.dead.forEach(function(b) {
+                    DrawRect(b.X, b.Y, CanvasData.DeadColor)
+                });
                 Packet.snakes.forEach(function(snake) {
                     DrawRect(snake.head.X, snake.head.Y, snake.color,
                         (snake.name == Username)?CanvasData.PlayerOutlineColor : CanvasData.OutlineColor);
@@ -112,9 +126,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
                         DrawRect(b.X, b.Y, snake.color,
                             (snake.name == Username)?CanvasData.PlayerOutlineColor : CanvasData.OutlineColor);
                     });
-                });
-                Packet.dead.forEach(function(b) {
-                    DrawRect(b.X, b.Y, CanvasData.DeadColor)
+                    DrawLabel(snake.head.X, snake.head.Y, snake.name, "#ffffff");
                 });
                 break;
             case "lose":
