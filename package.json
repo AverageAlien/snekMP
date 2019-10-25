@@ -1,0 +1,20 @@
+{
+  "name": "snek-mp",
+  "version": "1.0.0",
+  "description": "A multiplayer snake game written on nodeJS",
+  "main": "./Server/server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node Server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AverageAlien/snekMP.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AverageAlien/snekMP/issues"
+  },
+  "homepage": "https://github.com/AverageAlien/snekMP#readme"
+}
