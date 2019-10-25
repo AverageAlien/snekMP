@@ -54,9 +54,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
         Ctx.strokeStyle = "#000000";
         Ctx.textAlign = "center"
         let x = (X + 0.5) * CanvasData.Width / GridData.Width;
-        let y = (Y + 1.5) * CanvasData.Height / GridData.Height;
-        Ctx.fillText(Text, x, y);
+        let y = (Y + 2) * CanvasData.Height / GridData.Height;
         Ctx.strokeText(Text, x, y);
+        Ctx.fillText(Text, x, y);
     }
 
 
