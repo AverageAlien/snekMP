@@ -10,13 +10,13 @@ if (MyIP.err) {
     console.error(MyIP.err);
 }
 MyIP = MyIP.ip;
-const PagePort = 34000;
+const PagePort = 80;
 const ListenPort = 34101;
 
 let PageServer = http.createServer(function(req, res) {
     let urlParsed = url.parse(req.url, true);
 
-    if (urlParsed.pathname == "/game") {
+    if (urlParsed.pathname == "/") {
         fs.readFile("Client/index.html", function(err, file) {
             if (err == null) {
                 res.end(file);
