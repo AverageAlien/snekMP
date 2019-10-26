@@ -16,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/AverageAlien/snekMP/issues"
   },
-  "homepage": "https://github.com/AverageAlien/snekMP#readme"
+  "homepage": "https://github.com/AverageAlien/snekMP#readme",
+  "dependencies": {
+    "websocket": "^1.0.30"
+  }
 }

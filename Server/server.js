@@ -1,16 +1,10 @@
 let WebSocketServer = require("websocket").server;
 let http = require("http");
-let localIP = require("./node_modules/local-ip");
+//let localIP = require("./node_modules/local-ip");
 let fs = require("fs");
 let url = require("url");
 
-const MyMAC = "74:2f:68:9d:59:97";
-let MyIP = localIP.MACtoIPv4(MyMAC);
-if (MyIP.err) {
-    console.error(MyIP.err);
-}
-MyIP = MyIP.ip;
-const PagePort = 34000;
+const PagePort = 5000;
 const ListenPort = 34101;
 
 let PageServer = http.createServer(function(req, res) {
