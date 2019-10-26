@@ -4,9 +4,8 @@ let http = require("http");
 let fs = require("fs");
 let url = require("url");
 
-const PagePort = 5000;
-const ListenPort = 34101;
 
+process.env.PORT = process.env.PORT || 5000;
 process.env.SERVER_ADDRESS = process.env.SERVER_ADDRESS || "snek-mp.herokuapp.com";
 
 let PageServer = http.createServer(function(req, res) {
@@ -25,7 +24,9 @@ let PageServer = http.createServer(function(req, res) {
             if (err == null) {
                 let RandomName = NamePool1[Math.floor(Math.random() * NamePool1.length)] + " " +
                 NamePool2[Math.floor(Math.random() * NamePool2.length)];
-                file = file.replace("%DEF_IP%", process.env.SERVER_ADDRESS).replace("%DEF_USERNAME%", RandomName);
+                file = file.replace("%DEF_IP%", process.env.SERVER_ADDRESS)
+                .replace("%DEF_USERNAME%", RandomName)
+                .replace("%SERVER_PORT%", process.env.PORT);
                 res.end(file);
             } else {
                 res.end(err.message);
@@ -33,18 +34,14 @@ let PageServer = http.createServer(function(req, res) {
         })
     }
 });
-PageServer.listen(process.env.PORT || PagePort, () => console.log("Connected!"));
 
-let Server = http.createServer(function(request, response) {
-    //autoimplemented
-});
-Server.listen(ListenPort, function() {
-    console.log("Server started listening on " + process.env.SERVER_ADDRESS + ":" + ListenPort);
-    console.log(`Connect to ${process.env.SERVER_ADDRESS}:${PagePort} to play!`);
+PageServer.listen(process.env.PORT, () => {
+    console.log("Server started listening on " + process.env.SERVER_ADDRESS + ":" + process.env.PORT);
+    console.log(`Connect to ${process.env.SERVER_ADDRESS}:${process.env.PORT} to play!`);
 });
 
 let WsServer = new WebSocketServer({
-    httpServer: Server
+    httpServer: PageServer
 });
 
 function Sock(Con) {

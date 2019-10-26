@@ -60,13 +60,8 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
 
 
-    let ServerIP = "%DEF_IP%";
-    // let ServerIP = prompt("Enter server IP.", DefaultIP);
-    // if (!ServerIP) {
-    //     console.log("Connection cancelled.");
-    //     return;
-    // }
-    const ServerPort = 34101;
+    const ServerIP = "%DEF_IP%";
+    const ServerPort = "%SERVER_PORT%";
 
     let WSProtocol = (location.protocol == "https:")?"wss:":"ws:";
     let Connection = new WebSocket(`${WSProtocol}//${ServerIP}:${ServerPort}`);
@@ -81,7 +76,6 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
 
     Connection.onmessage = function(message) {
-        console.log("<<" + message.data);
         let Packet;
         try {
             Packet = JSON.parse(message.data);
