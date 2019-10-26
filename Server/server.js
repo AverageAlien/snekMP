@@ -1,5 +1,6 @@
 let WebSocketServer = require("websocket").server;
 let http = require("http");
+let https = require("https");
 //let localIP = require("./node_modules/local-ip");
 let fs = require("fs");
 let url = require("url");
@@ -8,7 +9,7 @@ let url = require("url");
 process.env.PORT = process.env.PORT || 5000;
 process.env.SERVER_ADDRESS = process.env.SERVER_ADDRESS || "snek-mp.herokuapp.com";
 
-let PageServer = http.createServer(function(req, res) {
+let PageServer = https.createServer(function(req, res) {
     let urlParsed = url.parse(req.url, true);
 
     if (urlParsed.pathname == "/") {
@@ -41,7 +42,8 @@ PageServer.listen(process.env.PORT, () => {
 });
 
 let WsServer = new WebSocketServer({
-    httpServer: PageServer
+    httpServer: PageServer,
+    
 });
 
 function Sock(Con) {
