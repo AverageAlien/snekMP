@@ -1,2 +1,6 @@
+# module folders
 node_modules/
 Server/node_modules/
+
+# local dev
+*.env

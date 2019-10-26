@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function(event) {
         Width: 512,
         Height: 512,
         OutlineColor: "#303030",
-        PlayerOutlineColor: "#a0a0a0",
+        PlayerHighlightColor: "#00ff00",
         DeadColor: "#636363",
         FoodColor: "#ffffff"
     };
@@ -60,12 +60,12 @@ document.addEventListener('DOMContentLoaded', function(event) {
     }
 
 
-    let DefaultIP = "%DEF_IP%";
-    let ServerIP = prompt("Enter server IP.", DefaultIP);
-    if (!ServerIP) {
-        console.log("Connection cancelled.");
-        return;
-    }
+    let ServerIP = "%DEF_IP%";
+    // let ServerIP = prompt("Enter server IP.", DefaultIP);
+    // if (!ServerIP) {
+    //     console.log("Connection cancelled.");
+    //     return;
+    // }
     const ServerPort = 34101;
     let Connection = new WebSocket(`ws://${ServerIP}:${ServerPort}`);
     let Username = null;
@@ -120,13 +120,12 @@ document.addEventListener('DOMContentLoaded', function(event) {
                     DrawRect(b.X, b.Y, CanvasData.DeadColor)
                 });
                 Packet.snakes.forEach(function(snake) {
-                    DrawRect(snake.head.X, snake.head.Y, snake.color,
-                        (snake.name == Username)?CanvasData.PlayerOutlineColor : CanvasData.OutlineColor);
+                    DrawRect(snake.head.X, snake.head.Y, snake.color, CanvasData.OutlineColor);
                     snake.body.forEach(function(b) {
-                        DrawRect(b.X, b.Y, snake.color,
-                            (snake.name == Username)?CanvasData.PlayerOutlineColor : CanvasData.OutlineColor);
+                        DrawRect(b.X, b.Y, snake.color, CanvasData.OutlineColor);
                     });
-                    DrawLabel(snake.head.X, snake.head.Y, snake.name, "#ffffff");
+                    DrawLabel(snake.head.X, snake.head.Y, snake.name,
+                        (snake.name == Username)?CanvasData.PlayerHighlightColor:"#ffffff");
                 });
                 break;
             case "lose":
