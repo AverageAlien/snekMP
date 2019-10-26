@@ -10,7 +10,7 @@ if (MyIP.err) {
     console.error(MyIP.err);
 }
 MyIP = MyIP.ip;
-const PagePort = 80;
+const PagePort = 34000;
 const ListenPort = 34101;
 
 let PageServer = http.createServer(function(req, res) {
@@ -37,7 +37,7 @@ let PageServer = http.createServer(function(req, res) {
         })
     }
 });
-PageServer.listen(PagePort, MyIP);
+PageServer.listen(process.env.PORT || PagePort, () => console.log("Connected!"));
 
 
 
@@ -46,7 +46,7 @@ let Server = http.createServer(function(request, response) {
 });
 Server.listen(ListenPort, MyIP, function() {
     console.log("Server started listening on " + MyIP + ":" + ListenPort);
-    console.log(`Connect to ${MyIP}:${PagePort}/game to play!`);
+    console.log(`Connect to ${MyIP}:${PagePort} to play!`);
 });
 
 let WsServer = new WebSocketServer({
