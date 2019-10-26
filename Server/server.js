@@ -26,8 +26,7 @@ let PageServer = http.createServer(function(req, res) {
                 let RandomName = NamePool1[Math.floor(Math.random() * NamePool1.length)] + " " +
                 NamePool2[Math.floor(Math.random() * NamePool2.length)];
                 file = file.replace("%DEF_IP%", process.env.SERVER_ADDRESS)
-                .replace("%DEF_USERNAME%", RandomName)
-                .replace("%SERVER_PORT%", process.env.PORT);
+                .replace("%DEF_USERNAME%", RandomName);
                 res.end(file);
             } else {
                 res.end(err.message);
@@ -37,7 +36,6 @@ let PageServer = http.createServer(function(req, res) {
 });
 
 PageServer.listen(process.env.PORT, () => {
-    console.log("Server started listening on " + process.env.SERVER_ADDRESS + ":" + process.env.PORT);
     console.log(`Connect to ${process.env.SERVER_ADDRESS}:${process.env.PORT} to play!`);
 });
 

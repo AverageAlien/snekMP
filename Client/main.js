@@ -61,10 +61,9 @@ document.addEventListener('DOMContentLoaded', function(event) {
 
 
     const ServerIP = "%DEF_IP%";
-    const ServerPort = "%SERVER_PORT%";
 
     let WSProtocol = (location.protocol == "https:")?"wss:":"ws:";
-    let Connection = new WebSocket(`ws://${ServerIP}:${ServerPort}`);
+    let Connection = new WebSocket(`${WSProtocol}//${ServerIP}:80`);
     let Username = null;
 
     Connection.onopen = function(event) {
